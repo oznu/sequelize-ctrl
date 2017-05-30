@@ -55,43 +55,48 @@ module.exports = (model, Sequelize) => {
   /**
    * GET /model/scope/:scope
    * POST /model/scope/:scope
-   * Allows access to all scopes declared on the model.
+   * Allows access to scopes declared in the publicScopes array on the model.
    */
   ctrl.scope = (req, res, next) => {
-    return model.scope(req.params.scope).findAll({
-      where: Sequelize.Validator.isJSON(req.query.where || '') ? JSON.parse(req.query.where) : req.body || {},
-      attributes: req.query.attributes ? (Array.isArray(req.query.attributes) ? req.query.attributes : [req.query.attributes]) : undefined,
-      limit: parseInt(req.query.limit) || undefined,
-      offset: parseInt(req.query.offset) || undefined,
-      order: req.query.orderBy ? [[req.query.orderBy, req.query.order || 'ASC']] : undefined
-    })
-    .then((data) => {
-      res.json(data)
-    }).catch(next)
-  }
-
-  /**
-   * PUT /model/:id/method/:method
-   * Allows access to instanceMethods in the publicInstanceMethods array on the model.
-   */
-  ctrl.instanceMethod = (req, res, next) => {
-    return model.findById(req.params.id)
-      .then((data) => {
-        if (data) {
-          if (data.$modelOptions.publicInstanceMethods && data.$modelOptions.publicInstanceMethods.includes(req.params.method)) {
-            return data[req.params.method](req.body)
-          } else {
-            res.status(404)
-            throw new Error(`Method '${req.params.method}' Not Found On '${model}'`)
-          }
-        } else {
-          res.status(404)
-          throw new Error(`Instance of '${model}' Not Found`)
-        }
+    if (model.publicScopes && model.publicScopes.find(x => x.toLowerCase() === req.params.scope.toLowerCase())) {
+      return model.scope(req.params.scope).findAll({
+        where: Sequelize.Validator.isJSON(req.query.where || '') ? JSON.parse(req.query.where) : req.body || {},
+        attributes: req.query.attributes ? (Array.isArray(req.query.attributes) ? req.query.attributes : [req.query.attributes]) : undefined,
+        limit: parseInt(req.query.limit) || undefined,
+        offset: parseInt(req.query.offset) || undefined,
+        order: req.query.orderBy ? [[req.query.orderBy, req.query.order || 'ASC']] : undefined
       })
       .then((data) => {
         res.json(data)
       }).catch(next)
+    } else {
+      res.status(404)
+      throw new Error(`Scope '${req.params.scope}' not found for model '${model.name}'`)
+    }
+  }
+
+  /**
+   * PUT /model/:id/method/:method
+   * Allows access to instanceMethods declared in the publicInstanceMethods array on the model.
+   */
+  ctrl.instanceMethod = (req, res, next) => {
+    if (model.publicInstanceMethods && model.publicInstanceMethods.find(x => x.toLowerCase() === req.params.method.toLowerCase())) {
+      return model.findById(req.params.id)
+        .then((data) => {
+          if (data) {
+            return data[req.params.method](req.body)
+          } else {
+            res.status(404)
+            throw new Error(`Instance of '${model.name}' not found`)
+          }
+        })
+        .then((data) => {
+          res.json(data)
+        }).catch(next)
+    } else {
+      res.status(404)
+      throw new Error(`Method '${req.params.method}' not found for '${model.name}'`)
+    }
   }
 
   /**
@@ -116,7 +121,7 @@ module.exports = (model, Sequelize) => {
           res.json(data)
         } else {
           res.status(404)
-          throw new Error(`Instance of '${model}' Not Found`)
+          throw new Error(`Instance of '${model.name}' not found`)
         }
       }).catch(next)
   }
@@ -132,7 +137,7 @@ module.exports = (model, Sequelize) => {
           return data.updateAttributes(req.body)
         } else {
           res.status(404)
-          throw new Error(`Instance of '${model}' Not Found`)
+          throw new Error(`Instance of '${model.name}' not found`)
         }
       }).then((data) => {
         res.json(data)
@@ -155,7 +160,7 @@ module.exports = (model, Sequelize) => {
           return data.updateAttributes(req.body)
         } else {
           res.status(404)
-          throw new Error(`Instance of '${model}' Not Found`)
+          throw new Error(`Instance of '${model.name}' not found`)
         }
       }).then((data) => {
         res.json(data)
@@ -204,7 +209,7 @@ module.exports = (model, Sequelize) => {
           })
         } else {
           res.status(404)
-          throw new Error(`Instance of '${model}' Not Found`)
+          throw new Error(`Instance of '${model.name}' not found`)
         }
       }).then((data) => {
         res.json(data)
@@ -224,7 +229,7 @@ module.exports = (model, Sequelize) => {
           return data[`get${rel}`]()
         } else {
           res.status(404)
-          throw new Error(`Instance of '${model}' Not Found`)
+          throw new Error(`Instance of '${model.name}' not found`)
         }
       }).then((data) => {
         res.json(data)
@@ -244,7 +249,7 @@ module.exports = (model, Sequelize) => {
           return data[`create${rel}`](req.body)
         } else {
           res.status(404)
-          throw new Error(`Instance of '${model}' Not Found`)
+          throw new Error(`Instance of '${model.name}' not found`)
         }
       }).then((data) => {
         res.status(201).json(data)
@@ -268,14 +273,14 @@ module.exports = (model, Sequelize) => {
           })
         } else {
           res.status(404)
-          throw new Error(`Instance of '${model}' Not Found`)
+          throw new Error(`Instance of '${model.name}' not found`)
         }
       }).then((data) => {
         if (data.length) {
           res.json(data[0])
         } else {
           res.status(404)
-          throw new Error(`Instance of '${rel}' Not Found`)
+          throw new Error(`Instance of '${rel}' not found`)
         }
       }).catch(next)
   }
@@ -293,19 +298,19 @@ module.exports = (model, Sequelize) => {
           return data[`add${rel}`](req.params.relId)
         } else {
           res.status(404)
-          throw new Error(`Instance of '${model}' Not Found`)
+          throw new Error(`Instance of '${model.name}' not found`)
         }
       }).then((data) => {
         if (data.length && data[0].length) {
           res.json(data[0][0])
         } else {
           res.status(400)
-          throw new Error(`Relation of '${rel}' and '${model}' Already Exists`)
+          throw new Error(`Relation of '${rel}' and '${model.name}' already exists`)
         }
       }).catch(Sequelize.ForeignKeyConstraintError, (err) => {
         if (err) {
           res.status(404)
-          throw new Error(`Instance of '${rel}' Not Found`)
+          throw new Error(`Instance of '${rel}' not found`)
         }
       }).catch(next)
   }
@@ -323,7 +328,7 @@ module.exports = (model, Sequelize) => {
           return data[`remove${rel}`](req.params.relId)
         } else {
           res.status(404)
-          throw new Error(`Instance of '${model}' Not Found`)
+          throw new Error(`Instance of '${model.name}' not found`)
         }
       }).then((data) => {
         res.json(data)
