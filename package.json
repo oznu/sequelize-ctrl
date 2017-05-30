@@ -1,0 +1,19 @@
+{
+  "name": "sequelize-ctrl",
+  "version": "1.0.0",
+  "description": "Express Sequelize Controllers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "sequelize",
+    "express",
+    "rest"
+  ],
+  "author": "oznu <dev@oz.nu>",
+  "license": "MIT",
+  "dependencies": {
+    "inflection": "^1.12.0"
+  }
+}
