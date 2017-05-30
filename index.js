@@ -335,5 +335,37 @@ module.exports = (model, Sequelize) => {
       }).catch(next)
   }
 
+  /**
+   * Middleware Only - Error Handler
+   */
+  ctrl.handleError = (err, req, res, next) => {
+    if (res.statusCode === 200) {
+      res.status(500)
+    }
+
+    let error = {
+      message: null
+    }
+
+    if (typeof err === 'string' || err instanceof String) {
+      error.message = err
+    } else {
+      if ('message' in err) {
+        error.message = err.message
+      }
+      if ('errors' in err) {
+        error.errors = err.errors
+      }
+    }
+
+    if (error.message === null && res.StatusCode === 404) {
+      error.message = 'Not Found'
+    } else if (error.message === null) {
+      error.message = 'An error occured while performing operation'
+    }
+
+    return res.json(error)
+  }
+
   return ctrl
 }
