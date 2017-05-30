@@ -1,6 +1,6 @@
 {
   "name": "sequelize-ctrl",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Express Sequelize Controllers",
   "main": "index.js",
   "scripts": {
@@ -15,5 +15,14 @@
   "license": "MIT",
   "dependencies": {
     "inflection": "^1.12.0"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oznu/sequelize-ctrl.git"
+  },
+  "bugs": {
+    "url": "https://github.com/oznu/sequelize-ctrl/issues"
+  },
+  "homepage": "https://github.com/oznu/sequelize-ctrl#readme"
 }
