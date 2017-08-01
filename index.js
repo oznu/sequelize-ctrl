@@ -100,6 +100,20 @@ module.exports = (model, Sequelize) => {
   }
 
   /**
+   * ANY /model/method/:method
+   * Allows access to classMethods declared in the publicClassMethods array on the model.
+   */
+  ctrl.classMethod = (req, res, next) => {
+    let method = inflection.camelize(req.params.method.replace('-', '_'), true)
+    if (model.publicClassMethods && model.publicClassMethods.find(x => x === method)) {
+      return model[method](req, res, next)
+    } else {
+      res.status(404)
+      throw new Error(`Class Method '${req.params.method}' not found for '${model.name}'`)
+    }
+  }
+
+  /**
    * POST /model
    * Creates a new instance of the model.
    */
