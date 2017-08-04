@@ -6,6 +6,23 @@ module.exports = (model, Sequelize) => {
   const ctrl = {}
 
   /**
+   * Middleware Only - Adds a single instance to the request object
+   */
+  ctrl.instance = (req, res, next) => {
+    return model.findById(req.params.id)
+      .then((data) => {
+        if (data) {
+          req.instance = data
+          next()
+        } else {
+          res.status(404)
+          throw new Error(`Instance of '${model.name}' not found`)
+        }
+      })
+      .catch(next)
+  }
+
+  /**
    * Middleware Only - Pagination Helper
    */
   ctrl.paginate = (req, res, next) => {
