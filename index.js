@@ -277,7 +277,9 @@ module.exports = (model, Sequelize) => {
     return model.findById(req.params.id)
       .then((data) => {
         if (data) {
-          return data[`create${rel}`](req.body)
+          return data[`create${rel}`](req.body, {
+            individualHooks: true
+          })
         } else {
           res.status(404)
           throw new Error(`Instance of '${model.name}' not found`)
@@ -326,7 +328,9 @@ module.exports = (model, Sequelize) => {
     return model.findById(req.params.id)
       .then((data) => {
         if (data) {
-          return data[`add${rel}`](req.params.relId)
+          return data[`add${rel}`](req.params.relId, {
+            individualHooks: true
+          })
         } else {
           res.status(404)
           throw new Error(`Instance of '${model.name}' not found`)
@@ -356,7 +360,9 @@ module.exports = (model, Sequelize) => {
     return model.findById(req.params.id)
       .then((data) => {
         if (data) {
-          return data[`remove${rel}`](req.params.relId)
+          return data[`remove${rel}`](req.params.relId, {
+            individualHooks: true
+          })
         } else {
           res.status(404)
           throw new Error(`Instance of '${model.name}' not found`)
